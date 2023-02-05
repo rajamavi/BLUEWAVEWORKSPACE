@@ -1,0 +1,53 @@
+---
+title: "Hierarchichal single clustering on non-globular data"
+output: html_notebook
+author: "Cristobal Sarome, CS 422 Spring 2018"
+---
+ 
+
+```{r}
+library(ggplot2)
+set.seed(123)
+rm(list=ls())
+data("multishapes", package = "factoextra")
+df <- multishapes[, 1:2]
+plot(df, main="Raw points")
+
+```
+```{r}
+# Let's try K-means first
+library(factoextra)
+k <- kmeans(df[, 1:2], centers=5, nstart=25)
+fviz_cluster(k, data=df[,1:2])
+```
+
+```{r}
+#Try hiearchical clustering using single mode
+hc.single <- hclust(dist(df), method="single")
+clusters.5 <- cutree(hc.single, 5)
+df$cl<-as.factor(clusters.5)
+sp<-ggplot(df,aes(x=x,y=y,color=cl))+ geom_point()
+print(sp)
+```
+
+```{r}
+#results are not as good as expected
+#let's try with higher number of clusters
+clusters.30 <- cutree(hc.single, 30)
+df$cl<-as.factor(clusters.30)
+sp<-ggplot(df,aes(x=x,y=y,color=cl))+ geom_point()
+print(sp)
+```
+
+```{r}
+#Now we have the natural clusters plus
+#A bunch of one-point clusters, we can group all
+#of those in the same cluster for better visualization
+count<-table(df$cl)
+out.groups<-which(count<5)
+df$cl[df$cl %in% out.groups]<-out.groups[1]
+sp<-ggplot(df,aes(x=x,y=y,color=cl))+ geom_point()
+sp
+#results look prety good
+```
+
